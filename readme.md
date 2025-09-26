@@ -103,7 +103,7 @@ python cpi_pipeline.py
 5. Optional: Run the Streamlit dashboard to explore the processed data:
 
 ```bash
-streamlit run app.py
+streamlit run streamlitapp.py
 ```
 
 ---
