@@ -6,7 +6,7 @@ This project demonstrates the ability to handle real-world messy datasets, creat
 
 ---
 
-## 🌐 Project Overview
+## Project Overview
 
 This project builds a robust pipeline for **monthly CPI data** from Statistics Canada:
 
@@ -20,7 +20,7 @@ The visualization components are built with Streamlit and Plotly to verify and e
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Python 3.11+** – primary programming language.
 - **Pandas** – data cleaning, transformation, and aggregation.
@@ -32,7 +32,7 @@ The visualization components are built with Streamlit and Plotly to verify and e
 
 ---
 
-## 📦 Data Pipeline Features
+## Data Pipeline Features
 
 1. **Automated Data Ingestion**
    - Downloads the latest StatsCan CPI dataset.
@@ -55,7 +55,7 @@ The visualization components are built with Streamlit and Plotly to verify and e
 
 ---
 
-## 📊 StatsCan CPI Dataset – Column Explanation
+## StatsCan CPI Dataset – Column Explanation
 
 | Column | Description |
 |--------|-------------|
@@ -71,7 +71,7 @@ The visualization components are built with Streamlit and Plotly to verify and e
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
 1. Clone the repository:
 
@@ -96,7 +96,7 @@ streamlit run app.py
 
 ---
 
-## 🎯 Data Engineering Skills Highlighted
+## Data Engineering Skills Highlighted
 
 * **Automated Data Ingestion** – downloading, extracting, and reading datasets programmatically.
 * **Data Cleaning & Transformation** – handling messy real-world datasets with missing values and metadata issues.
@@ -106,7 +106,7 @@ streamlit run app.py
 
 ---
 
-## 📈 Extensions / Next Steps
+## Extensions / Next Steps
 
 * Schedule automated updates of CPI data for **incremental ingestion pipelines**.
 * Build **ETL pipelines** to load cleaned data into databases (PostgreSQL, BigQuery, etc.).
