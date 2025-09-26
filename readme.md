@@ -45,6 +45,7 @@ This project implements a robust **automated pipeline for monthly CPI data** fro
    * Encodes product names for safe storage and computation.
    * Computes **Month-over-Month (MoM)** and **Year-over-Year (YoY)** changes per product and geography.
    * Forward/backward fills small gaps to handle missing values.
+   * Extracts **City** and **Province** from the `GEO` column automatically.
 
 3. **Database Loading**
 
@@ -61,17 +62,17 @@ This project implements a robust **automated pipeline for monthly CPI data** fro
 
 ## StatsCan CPI Dataset – Column Overview
 
-| Column                          | Description                                |
-| ------------------------------- | ------------------------------------------ |
-| **REF_DATE**                    | Reference period (monthly, YYYY-MM-DD).    |
-| **GEO**                         | Geography (province, city, or national).   |
-| **Products and product groups** | CPI category.                              |
-| **UOM**                         | Unit of measure (base year index).         |
-| **VALUE**                       | CPI value.                                 |
-| **MoM**                         | Month-over-Month percentage change.        |
-| **YoY**                         | Year-over-Year percentage change.          |
-| **City / Province**             | Normalized location fields.                |
-| **Other Metadata**              | Includes `SYMBOL`, `STATUS`, `DGUID`, etc. |
+| Column                          | Description                                      |
+| ------------------------------- | ------------------------------------------------ |
+| **REF_DATE**                    | Reference period (monthly, YYYY-MM-DD).          |
+| **GEO**                         | Geography (province, city, or national).         |
+| **Products and product groups** | CPI category.                                    |
+| **UOM**                         | Unit of measure (base year index).               |
+| **VALUE**                       | CPI value.                                       |
+| **MoM**                         | Month-over-Month percentage change.              |
+| **YoY**                         | Year-over-Year percentage change.                |
+| **City / Province**             | Normalized location fields (extracted from GEO). |
+| **Other Metadata**              | Includes `SYMBOL`, `STATUS`, `DGUID`, etc.       |
 
 ---
 
@@ -98,7 +99,7 @@ pip install -r requirements.txt
 python flows/cpi_pipeline.py
 ```
 
-> This step downloads, cleans, computes metrics, and loads the data into PostgreSQL/Supabase.
+> This step downloads, cleans, computes metrics, extracts City/Province, and loads the data into PostgreSQL/Supabase.
 
 5. **Visualize the data** using the Streamlit dashboard:
 
