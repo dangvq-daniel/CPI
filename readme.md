@@ -89,7 +89,7 @@ pip install -r requirements.txt
 3. Run the dashboard (optional, to explore processed data):
 
 ```bash
-streamlit run app.py
+streamlit run streamlitapp.py
 ```
 
 4. Or use the cleaned CSVs directly for analytics or machine learning.
