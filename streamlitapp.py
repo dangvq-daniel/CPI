@@ -5,6 +5,7 @@ import json
 import folium
 from streamlit_folium import st_folium
 import shapely.geometry
+from sqlalchemy import create_engine
 import psycopg2
 import os
 from supabase import create_client
@@ -15,26 +16,23 @@ from supabase import create_client
 @st.cache_data
 def load_data():
     # -----------------------------
-    # Supabase credentials
+    # Supabase Postgres connection URI
     # -----------------------------
-    url = st.secrets["supabase"]["url"]
-    key = st.secrets["supabase"].get("service_key") or st.secrets["supabase"]["anon_key"]
+    password = st.secrets["supabase"]["password"]  # safe way
+    db_url = f"postgresql://postgres.rtewftvldajjhqjbwwfx:{password}@aws-1-us-east-2.pooler.supabase.com:5432/postgres"
 
-    supabase = create_client(url, key)
+    # Create SQLAlchemy engine
+    engine = create_engine(db_url)
 
     # -----------------------------
-    # Fetch table data directly
+    # Fetch table data
     # -----------------------------
-    st.info("Fetching data from Supabase...")
-    response = supabase.table("cpi_long_with_location").select("*").limit(None).execute()
+    st.info("Fetching data from Supabase PostgreSQL...")
 
+    query = "SELECT * FROM cpi_long_with_location"
+    df = pd.read_sql(query, engine)
+    st.success(f"Fetched {len(df)} rows successfully!")
 
-    if response.data is None:
-        st.error("Failed to fetch data from Supabase.")
-        return pd.DataFrame()
-
-    df = pd.DataFrame(response.data)
-    st.success("Data fetched successfully!")
 
     # -----------------------------
     # Data cleaning
@@ -44,8 +42,6 @@ def load_data():
     df['UOM'] = df['UOM'].ffill()
     df = df[['REF_DATE', 'GEO', 'UOM', 'Products and product groups', 'VALUE', 'MoM', 'YoY', 'City', 'Province']]
     df['VALUE'] = pd.to_numeric(df['VALUE'], errors='coerce')
-
-    # Forward/backward fill small missing gaps
     df[['VALUE', 'MoM', 'YoY']] = df[['VALUE', 'MoM', 'YoY']].fillna(method='ffill').fillna(method='bfill')
     df['Province'] = df['Province'].fillna(df['GEO'])
 

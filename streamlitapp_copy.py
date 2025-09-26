@@ -7,33 +7,34 @@ from streamlit_folium import st_folium
 import shapely.geometry
 import psycopg2
 import os
+from sqlalchemy import create_engine
 from supabase import create_client
 
 # -----------------------------
 # Load & clean data
 # -----------------------------
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0ZXdmdHZsZGFqamhxamJ3d2Z4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODczMjI3MCwiZXhwIjoyMDc0MzA4MjcwfQ.Jx1-dXhIHTxQ0sUW3Q0uAbsNiiVk97iXN2PoToq64yY"
+password = "ZWeAQRaKKzFyQKEo"
 @st.cache_data
 def load_data():
     # -----------------------------
-    # Supabase credentials
+    # Supabase Postgres connection URI
     # -----------------------------
-    url = "https://rtewftvldajjhqjbwwfx.supabase.co"
-    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0ZXdmdHZsZGFqamhxamJ3d2Z4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODczMjI3MCwiZXhwIjoyMDc0MzA4MjcwfQ.Jx1-dXhIHTxQ0sUW3Q0uAbsNiiVk97iXN2PoToq64yY"
+    # password = st.secrets["supabase"]["service_role_key"]  # safe way
+    db_url = f"postgresql://postgres.rtewftvldajjhqjbwwfx:{password}@aws-1-us-east-2.pooler.supabase.com:5432/postgres"
 
-    supabase = create_client(url, key)
+    # Create SQLAlchemy engine
+    engine = create_engine(db_url)
 
     # -----------------------------
-    # Fetch table data directly
+    # Fetch table data
     # -----------------------------
-    st.info("Fetching data from Supabase...")
-    response = supabase.table("cpi_long_with_location").select("*").execute()
+    st.info("Fetching data from Supabase PostgreSQL...")
 
-    if response.data is None:
-        st.error("Failed to fetch data from Supabase.")
-        return pd.DataFrame()
+    query = "SELECT * FROM cpi_long_with_location"
+    df = pd.read_sql(query, engine)
+    st.success(f"Fetched {len(df)} rows successfully!")
 
-    df = pd.DataFrame(response.data)
-    st.success("Data fetched successfully!")
 
     # -----------------------------
     # Data cleaning
@@ -43,8 +44,6 @@ def load_data():
     df['UOM'] = df['UOM'].ffill()
     df = df[['REF_DATE', 'GEO', 'UOM', 'Products and product groups', 'VALUE', 'MoM', 'YoY', 'City', 'Province']]
     df['VALUE'] = pd.to_numeric(df['VALUE'], errors='coerce')
-
-    # Forward/backward fill small missing gaps
     df[['VALUE', 'MoM', 'YoY']] = df[['VALUE', 'MoM', 'YoY']].fillna(method='ffill').fillna(method='bfill')
     df['Province'] = df['Province'].fillna(df['GEO'])
 
