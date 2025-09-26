@@ -9,7 +9,7 @@ if not os.path.exists(csv_path):
     print("CSV not found, downloading from Supabase...")
 
     user = "postgres"
-    password = "YOUR_PASSWORD"   # ideally from secrets
+    password = "ZWeAQRaKKzFyQKEo"   # ideally from secrets
     host = "db.rtewftvldajjhqjbwwfx.supabase.co"
     port = "5432"
     database = "postgres"
