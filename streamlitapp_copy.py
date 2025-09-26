@@ -14,61 +14,45 @@ from supabase import create_client
 # -----------------------------
 @st.cache_data
 def load_data():
-    csv_path = "cpi_long_with_location.csv"
+    # -----------------------------
+    # Supabase credentials
+    # -----------------------------
+    url = "https://rtewftvldajjhqjbwwfx.supabase.co"
+    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0ZXdmdHZsZGFqamhxamJ3d2Z4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODczMjI3MCwiZXhwIjoyMDc0MzA4MjcwfQ.Jx1-dXhIHTxQ0sUW3Q0uAbsNiiVk97iXN2PoToq64yY"
 
-    # If CSV not present, pull from Supabase
-    if not os.path.exists(csv_path):
-        st.info("CSV not found. Downloading from Supabase...")
-
-        user = "postgres"
-        host = "db.rtewftvldajjhqjbwwfx.supabase.co"
-        port = "5432"
-        database = "postgres"
-        password_path = "./password"
-
-        with open(password_path, "r") as f:
-            password = f.readline().strip()
-
-        conn = psycopg2.connect(
-            host=host,
-            dbname=database,
-            user=user,
-            password=password,
-            port=port
-        )
-
-        query = "SELECT * FROM cpi_long_with_location;"
-        df = pd.read_sql(query, conn)
-        conn.close()
-
-        # Save locally for future runs
-        df.to_csv(csv_path, index=False)
-        st.success("Download complete! Saved to local CSV.")
-    else:
-        # If already present, just load it
-        df = pd.read_csv(csv_path)
+    supabase = create_client(url, key)
 
     # -----------------------------
-    # Clean up data
+    # Fetch table data directly
     # -----------------------------
-    df['REF_DATE'] = pd.to_datetime(df['REF_DATE'])
+    st.info("Fetching data from Supabase...")
+    response = supabase.table("cpi_long_with_location").select("*").execute()
+
+    if response.data is None:
+        st.error("Failed to fetch data from Supabase.")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(response.data)
+    st.success("Data fetched successfully!")
+
+    # -----------------------------
+    # Data cleaning
+    # -----------------------------
+    df['REF_DATE'] = pd.to_datetime(df['REF_DATE'], errors='coerce')
     df['GEO'] = df['GEO'].ffill()
     df['UOM'] = df['UOM'].ffill()
-    df = df[['REF_DATE', 'GEO', 'UOM', 'Products and product groups',
-             'VALUE', 'MoM', 'YoY', 'City', 'Province']]
+    df = df[['REF_DATE', 'GEO', 'UOM', 'Products and product groups', 'VALUE', 'MoM', 'YoY', 'City', 'Province']]
     df['VALUE'] = pd.to_numeric(df['VALUE'], errors='coerce')
 
     # Forward/backward fill small missing gaps
-    df[['VALUE', 'MoM', 'YoY']] = (
-        df[['VALUE', 'MoM', 'YoY']]
-        .fillna(method='ffill')
-        .fillna(method='bfill')
-    )
+    df[['VALUE', 'MoM', 'YoY']] = df[['VALUE', 'MoM', 'YoY']].fillna(method='ffill').fillna(method='bfill')
     df['Province'] = df['Province'].fillna(df['GEO'])
 
     return df
 
 df = load_data()
+print(df.sample(10))
+print(df.shape)
 st.set_page_config(page_title="CPI Dashboard", layout="wide")
 
 # -----------------------------
