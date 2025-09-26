@@ -79,6 +79,28 @@ def clean_transform(df: pd.DataFrame) -> pd.DataFrame:
     # Forward/backward fill small gaps
     df[['VALUE', 'MoM', 'YoY']] = df[['VALUE', 'MoM', 'YoY']].fillna(method='ffill').fillna(method='bfill')
     
+        # -----------------------------
+    # Extract City and Province from GEO
+    # -----------------------------
+    def extract_city_province(geo: str):
+        if pd.isna(geo):
+            return pd.NA, pd.NA
+        parts = [p.strip() for p in geo.split(",", 1)]
+        city = parts[0] if len(parts) > 0 else pd.NA
+        province = parts[1] if len(parts) > 1 else city
+        return city, province
+
+    df[['City', 'Province']] = df.apply(
+        lambda row: extract_city_province(row['GEO']) 
+                    if pd.isna(row.get('City')) or pd.isna(row.get('Province')) 
+                    else (row['City'], row['Province']),
+        axis=1,
+        result_type='expand'
+    )
+
+    # Fill remaining missing values
+    df['City'] = df['City'].fillna('Unknown')
+    df['Province'] = df['Province'].fillna('Unknown')
     return df
 
 def load_to_postgres(df: pd.DataFrame):

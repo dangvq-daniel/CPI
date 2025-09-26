@@ -14,11 +14,29 @@ from supabase import create_client
 # Load & clean data
 # -----------------------------
 @st.cache_data
+def get_db_password():
+    try:
+        # Try to get password from Streamlit secrets
+        password = st.secrets["supabase"]["password"]
+        if not password:
+            raise KeyError("Empty password in secrets")
+        return password
+    except Exception:
+        # Fallback: read password from local file
+        password_file = "./password"
+        if os.path.exists(password_file):
+            with open(password_file, "r") as f:
+                return f.readline().strip()
+        else:
+            raise FileNotFoundError(
+                "Database password not found in st.secrets or ./password file."
+            )
 def load_data():
     # -----------------------------
     # Supabase Postgres connection URI
-    # -----------------------------
-    password = st.secrets["supabase"]["password"]  # safe way
+    # -----------------------------=
+    
+    password = get_db_password()
     db_url = f"postgresql://postgres.rtewftvldajjhqjbwwfx:{password}@aws-1-us-east-2.pooler.supabase.com:5432/postgres"
 
     # Create SQLAlchemy engine

@@ -25,7 +25,7 @@ This project implements a robust **automated pipeline for monthly CPI data** fro
 * **Pandas & NumPy** – data cleaning, transformation, and computation.
 * **Requests & Zipfile** – automated download and extraction of raw CSVs.
 * **SQLAlchemy** – database integration with PostgreSQL/Supabase.
-* **Streamlit & Plotly** – optional dashboards and interactive visualization.
+* **Streamlit & Plotly** – interactive dashboards and visualizations.
 * **Data Pipeline Best Practices** – modular functions, caching, validation, incremental ingestion.
 
 ---
@@ -92,19 +92,21 @@ pip install -r requirements.txt
 
 3. Create a `.env` or `password` file for your **PostgreSQL/Supabase credentials**.
 
-4. Run the pipeline:
+4. Run the data pipeline located at `flows/cpi_pipeline.py`:
 
 ```bash
-python cpi_pipeline.py
+python flows/cpi_pipeline.py
 ```
 
-> The script automatically downloads, cleans, computes metrics, and loads data into PostgreSQL.
+> This step downloads, cleans, computes metrics, and loads the data into PostgreSQL/Supabase.
 
-5. Optional: Run the Streamlit dashboard to explore the processed data:
+5. **Visualize the data** using the Streamlit dashboard:
 
 ```bash
 streamlit run streamlitapp.py
 ```
+
+> You must run `streamlitapp.py` to explore and interact with the processed CPI data. The dashboard is designed as the primary interface for analysis.
 
 ---
 
@@ -115,7 +117,7 @@ streamlit run streamlitapp.py
 * **Metric Computation & Aggregation** – MoM/YoY calculations per product and geography.
 * **Reproducible Pipelines** – modular, cached, and idempotent functions for production-ready workflows.
 * **Database Integration** – PostgreSQL/Supabase storage for scalable analytics.
-* **Optional Visualization Verification** – interactive dashboards with Streamlit and Plotly.
+* **Interactive Visualization** – Streamlit dashboard as the main interface for exploring the data.
 
 ---
 
