@@ -7,6 +7,7 @@ from streamlit_folium import st_folium
 import shapely.geometry
 import psycopg2
 import os
+from supabase import create_client
 
 # -----------------------------
 # Load & clean data
@@ -15,39 +16,31 @@ import os
 def load_data():
     csv_path = "cpi_long_with_location.csv"
 
-    # If CSV not present, pull from Supabase
+    # Supabase credentials from Streamlit secrets
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"].get("service_key") or st.secrets["supabase"]["anon_key"]
+
+    supabase = create_client(url, key)
+
+    # Download CSV if not present
     if not os.path.exists(csv_path):
-        st.info("CSV not found. Downloading from Supabase...")
+        st.info("CSV not found in container. Downloading from Supabase...")
+        response = supabase.table("cpi_long_with_location").select("*").execute()
 
-        user = "postgres"
-        host = "db.rtewftvldajjhqjbwwfx.supabase.co"
-        port = "5432"
-        database = "postgres"
-        password_path = "./password"
+        if response.data is None:
+            st.error("Failed to fetch data from Supabase.")
+            return pd.DataFrame()  # Return empty DF on failure
 
-        with open(password_path, "r") as f:
-            password = f.readline().strip()
-
-        conn = psycopg2.connect(
-            host=host,
-            dbname=database,
-            user=user,
-            password=password,
-            port=port
-        )
-
-        query = "SELECT * FROM cpi_long_with_location;"
-        df = pd.read_sql(query, conn)
-        conn.close()
-
-        # Save locally for future runs
+        df = pd.DataFrame(response.data)
         df.to_csv(csv_path, index=False)
-        st.success("Download complete! Saved to local CSV.")
+        st.success("Download complete!")
     else:
-        # If already present, just load it
         df = pd.read_csv(csv_path)
 
-    df['REF_DATE'] = pd.to_datetime(df['REF_DATE'])
+    # -----------------------------
+    # Data cleaning
+    # -----------------------------
+    df['REF_DATE'] = pd.to_datetime(df['REF_DATE'], errors='coerce')
     df['GEO'] = df['GEO'].ffill()
     df['UOM'] = df['UOM'].ffill()
     df = df[['REF_DATE', 'GEO', 'UOM', 'Products and product groups', 'VALUE', 'MoM', 'YoY', 'City', 'Province']]
@@ -56,6 +49,7 @@ def load_data():
     # Forward/backward fill small missing gaps
     df[['VALUE', 'MoM', 'YoY']] = df[['VALUE', 'MoM', 'YoY']].fillna(method='ffill').fillna(method='bfill')
     df['Province'] = df['Province'].fillna(df['GEO'])
+
     return df
 
 df = load_data()
