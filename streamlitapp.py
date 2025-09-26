@@ -14,28 +14,26 @@ from supabase import create_client
 # -----------------------------
 @st.cache_data
 def load_data():
-    csv_path = "cpi_long_with_location.csv"
-
-    # Supabase credentials from Streamlit secrets
+    # -----------------------------
+    # Supabase credentials
+    # -----------------------------
     url = st.secrets["supabase"]["url"]
     key = st.secrets["supabase"].get("service_key") or st.secrets["supabase"]["anon_key"]
 
     supabase = create_client(url, key)
 
-    # Download CSV if not present
-    if not os.path.exists(csv_path):
-        st.info("CSV not found in container. Downloading from Supabase...")
-        response = supabase.table("cpi_long_with_location").select("*").execute()
+    # -----------------------------
+    # Fetch table data directly
+    # -----------------------------
+    st.info("Fetching data from Supabase...")
+    response = supabase.table("cpi_long_with_location").select("*").execute()
 
-        if response.data is None:
-            st.error("Failed to fetch data from Supabase.")
-            return pd.DataFrame()  # Return empty DF on failure
+    if response.data is None:
+        st.error("Failed to fetch data from Supabase.")
+        return pd.DataFrame()
 
-        df = pd.DataFrame(response.data)
-        df.to_csv(csv_path, index=False)
-        st.success("Download complete!")
-    else:
-        df = pd.read_csv(csv_path)
+    df = pd.DataFrame(response.data)
+    st.success("Data fetched successfully!")
 
     # -----------------------------
     # Data cleaning
