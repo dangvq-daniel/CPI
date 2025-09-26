@@ -5,13 +5,48 @@ import json
 import folium
 from streamlit_folium import st_folium
 import shapely.geometry
+import psycopg2
+import os
 
 # -----------------------------
 # Load & clean data
 # -----------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv('cpi_long_with_location.csv')
+    csv_path = "cpi_long_with_location.csv"
+
+    # If CSV not present, pull from Supabase
+    if not os.path.exists(csv_path):
+        st.info("CSV not found. Downloading from Supabase...")
+
+        user = "postgres"
+        host = "db.rtewftvldajjhqjbwwfx.supabase.co"
+        port = "5432"
+        database = "postgres"
+        password_path = "./password"
+
+        with open(password_path, "r") as f:
+            password = f.readline().strip()
+
+        conn = psycopg2.connect(
+            host=host,
+            dbname=database,
+            user=user,
+            password=password,
+            port=port
+        )
+
+        query = "SELECT * FROM cpi_long_with_location;"
+        df = pd.read_sql(query, conn)
+        conn.close()
+
+        # Save locally for future runs
+        df.to_csv(csv_path, index=False)
+        st.success("Download complete! Saved to local CSV.")
+    else:
+        # If already present, just load it
+        df = pd.read_csv(csv_path)
+
     df['REF_DATE'] = pd.to_datetime(df['REF_DATE'])
     df['GEO'] = df['GEO'].ffill()
     df['UOM'] = df['UOM'].ffill()
