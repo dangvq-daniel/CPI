@@ -50,7 +50,7 @@ def load_data():
     query = "SELECT * FROM cpi_long_with_location"
     df = pd.read_sql(query, engine)
     st.success(f"Fetched {len(df)} rows successfully!")
-
+    df.to_csv("cpi_data.csv", index=False)  # Save a local copy
 
     # -----------------------------
     # Data cleaning
